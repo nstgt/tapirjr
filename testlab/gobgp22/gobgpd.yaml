@@ -1,0 +1,18 @@
+global:
+  config:
+    as: 65022
+    router-id: 10.0.1.22
+  apply-policy:
+    config:
+      default-import-policy: accept-route
+      default-export-policy: accept-route
+
+neighbors:
+  - config:
+      neighbor-address: 10.0.1.20
+      peer-as: 65020
+    transport:
+      config:
+        passive-mode: false
+
+

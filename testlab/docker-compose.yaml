@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+  gobgp10:
+    image: gotoinfamous/gobgp:latest
+    container_name: g10
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50010
+    volumes:
+      - ${PWD}/gobgp10:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.10
+    ports:
+      - "50010:50010"
+  gobgp11:
+    image: gotoinfamous/gobgp:latest
+    container_name: g11
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50011
+    volumes:
+      - ${PWD}/gobgp11:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.11
+    ports:
+      - "50011:50011"
+  gobgp20:
+    image: gotoinfamous/gobgp:latest
+    container_name: g20
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50020
+    volumes:
+      - ${PWD}/gobgp20:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.20
+    ports:
+      - "50020:50020"        
+  gobgp22:
+    image: gotoinfamous/gobgp:latest
+    container_name: g22
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50022
+    volumes:
+      - ${PWD}/gobgp22:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.22
+    ports:
+      - "50022:50022"        
+networks:
+  br01:
+    driver: bridge
+    ipam:
+     driver: default
+     config:
+       - subnet: 10.0.1.0/24
+
