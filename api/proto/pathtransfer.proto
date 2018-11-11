@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+import "github.com/osrg/gobgp/api/gobgp.proto";
+
+package pathtransfer;
+
+service PathTransfer {
+    rpc Transmit(stream gobgpapi.Path) returns (PathTransferResponse);
+}
+
+message PathTransferResponse {
+    string status = 1;
+}
