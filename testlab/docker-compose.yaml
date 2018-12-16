@@ -2,7 +2,7 @@ version: '3'
 
 services:
   gobgp10:
-    image: gotoinfamous/gobgp:latest
+    image: nstgt/docker-gobgp:latest
     container_name: g10
     command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50010
     volumes:
@@ -13,7 +13,7 @@ services:
     ports:
       - "50010:50010"
   gobgp11:
-    image: gotoinfamous/gobgp:latest
+    image: nstgt/docker-gobgp:latest
     container_name: g11
     command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50011
     volumes:
@@ -24,7 +24,7 @@ services:
     ports:
       - "50011:50011"
   gobgp20:
-    image: gotoinfamous/gobgp:latest
+    image: nstgt/docker-gobgp:latest
     container_name: g20
     command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50020
     volumes:
@@ -35,7 +35,7 @@ services:
     ports:
       - "50020:50020"        
   gobgp22:
-    image: gotoinfamous/gobgp:latest
+    image: nstgt/docker-gobgp:latest
     container_name: g22
     command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50022
     volumes:
