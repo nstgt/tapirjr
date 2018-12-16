@@ -10,9 +10,9 @@ func newRootCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {},
 	}
 
-	serverCmd := newServerCmd()
-	clientCmd := newClientCmd()
-	rootCmd.AddCommand(serverCmd, clientCmd)
+	receiverCmd := newReceiverCmd()
+	senderCmd := newSenderCmd()
+	rootCmd.AddCommand(receiverCmd, senderCmd)
 
 	return rootCmd
 }

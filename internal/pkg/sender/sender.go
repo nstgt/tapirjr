@@ -1,4 +1,4 @@
-package client
+package sender
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var ClientOpts struct {
+var SenderOpts struct {
 	GobgpAddr string
 	PeerAddrs string
 }
@@ -25,25 +25,25 @@ var ac gobgpapi.GobgpApiClient
 
 func Run() {
 	opt := grpc.WithInsecure()
-	conn, err := grpc.Dial(ClientOpts.GobgpAddr, opt)
+	conn, err := grpc.Dial(SenderOpts.GobgpAddr, opt)
 	if err != nil {
 		log.Fatalf("Connection error: %v", err)
 	}
 
 	pathChan := make(chan *gobgpapi.Path, MAX_PATH_CAPACITY)
 
-	var clients []client
-	addrs := parsePeerAddrs(ClientOpts.PeerAddrs)
+	var senders []sender
+	addrs := parsePeerAddrs(SenderOpts.PeerAddrs)
 	for _, addr := range addrs {
-		c := client{address: addr}
-		clients = append(clients, c)
+		c := sender{address: addr}
+		senders = append(senders, c)
 		//go c.start()
 	}
 
 	ac = gobgpapi.NewGobgpApiClient(conn)
 	go monitorRib(pathChan)
 	// WIP: only one connection can be used to send path
-	go clients[0].sendPath(pathChan)
+	go senders[0].sendPath(pathChan)
 
 }
 
@@ -73,17 +73,17 @@ func monitorRib(pathChan chan *gobgpapi.Path) {
 }
 
 // WIP
-//func distributePath(pathChan chan *gobgpapi.Path, clients []client) {
+//func distributePath(pathChan chan *gobgpapi.Path, senders []sender) {
 //	for {
 //		path, ok := <-pathChan
 //		if !ok {
 //			break
 //		}
 //		p := *path
-//		for _, cli := range clients {
+//		for _, cli := range senders {
 //			go cli.sendPath(p)
 //		}
-//		c := clients[0]
+//		c := senders[0]
 //		c.sendPath(p)
 //	}
 //}
@@ -92,12 +92,12 @@ func parsePeerAddrs(addrs string) []string {
 	return strings.Split(addrs, ",")
 }
 
-type client struct {
+type sender struct {
 	address string
 }
 
 // WIP
-//func (c client) start() {
+//func (c sender) start() {
 //	conn, err := grpc.Dial(c.address, grpc.WithInsecure())
 //	if err != nil {
 //		log.Fatal(err)
@@ -108,7 +108,7 @@ type client struct {
 //	return
 //}
 
-func (c client) sendPath(pathChan chan *gobgpapi.Path) {
+func (c sender) sendPath(pathChan chan *gobgpapi.Path) {
 	conn, err := grpc.Dial(c.address, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)

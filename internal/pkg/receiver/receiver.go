@@ -1,4 +1,4 @@
-package server
+package receiver
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var ServerOpts struct {
+var ReceiverOpts struct {
 	GobgpAddr string
 	Port      string
 }
@@ -19,29 +19,29 @@ var ServerOpts struct {
 var ac gobgpapi.GobgpApiClient
 
 func Run() {
-	conn, err := grpc.Dial(ServerOpts.GobgpAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(ReceiverOpts.GobgpAddr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
 	ac = gobgpapi.NewGobgpApiClient(conn)
 
-	lis, err := net.Listen("tcp", ServerOpts.Port)
+	lis, err := net.Listen("tcp", ReceiverOpts.Port)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	s := grpc.NewServer()
-	ptapi.RegisterPathTransferServer(s, new(server))
+	ptapi.RegisterPathTransferServer(s, new(receiver))
 	err = s.Serve(lis)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-type server struct{}
+type receiver struct{}
 
-func (s *server) Transmit(ctx context.Context, path *gobgpapi.Path) (*ptapi.PathTransferResponse, error) {
+func (s *receiver) Transmit(ctx context.Context, path *gobgpapi.Path) (*ptapi.PathTransferResponse, error) {
 	// ForDebug
 	fmt.Println(path)
 
