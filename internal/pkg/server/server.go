@@ -16,9 +16,16 @@ var ServerOpts struct {
 	Port      string
 }
 
-type server struct{}
+var ac gobgpapi.GobgpApiClient
 
 func Run() {
+	conn, err := grpc.Dial(ServerOpts.GobgpAddr, grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	ac = gobgpapi.NewGobgpApiClient(conn)
+
 	lis, err := net.Listen("tcp", ServerOpts.Port)
 	if err != nil {
 		log.Fatal(err)
@@ -32,9 +39,19 @@ func Run() {
 	}
 }
 
+type server struct{}
+
 func (s *server) Transmit(ctx context.Context, path *gobgpapi.Path) (*ptapi.PathTransferResponse, error) {
-	// WIP
+	// ForDebug
 	fmt.Println(path)
+
+	_, err := ac.AddPath(context.Background(), &gobgpapi.AddPathRequest{
+		Path: path,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	res := ptapi.PathTransferResponse{
 		Status: "ok",
 	}
