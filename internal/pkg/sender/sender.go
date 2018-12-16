@@ -35,9 +35,9 @@ func Run() {
 	var senders []sender
 	addrs := parsePeerAddrs(SenderOpts.PeerAddrs)
 	for _, addr := range addrs {
-		c := sender{address: addr}
-		senders = append(senders, c)
-		//go c.start()
+		cc := getClientConn(addr)
+		s := sender{address: addr, cliconn: cc}
+		senders = append(senders, s)
 	}
 
 	ac = gobgpapi.NewGobgpApiClient(conn)
@@ -92,30 +92,27 @@ func parsePeerAddrs(addrs string) []string {
 	return strings.Split(addrs, ",")
 }
 
-type sender struct {
-	address string
-}
-
-// WIP
-//func (c sender) start() {
-//	conn, err := grpc.Dial(c.address, grpc.WithInsecure())
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	defer conn.Close()
-//	c.conn = conn
-//
-//	return
-//}
-
-func (c sender) sendPath(pathChan chan *gobgpapi.Path) {
-	conn, err := grpc.Dial(c.address, grpc.WithInsecure())
+func getClientConn(addr string) (cc *grpc.ClientConn) {
+	cc, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	return cc
+}
 
-	cli := ptapi.NewPathTransferClient(conn)
+type sender struct {
+	address string
+	cliconn *grpc.ClientConn
+}
+
+func (s *sender) sendPath(pathChan chan *gobgpapi.Path) {
+	//conn, err := grpc.Dial(s.address, grpc.WithInsecure())
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//defer conn.Close()
+
+	cli := ptapi.NewPathTransferClient(s.cliconn)
 
 	for {
 		path, ok := <-pathChan
