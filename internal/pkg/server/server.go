@@ -1,25 +1,25 @@
 package server
 
 import (
+	"context"
 	"fmt"
-	"io"
 	"log"
 	"net"
 
 	ptapi "github.com/7310510/tapirjr/api/proto"
+	gobgpapi "github.com/osrg/gobgp/api"
 	"google.golang.org/grpc"
 )
 
+var ServerOpts struct {
+	GobgpAddr string
+	Port      string
+}
+
 type server struct{}
 
-func Run(gobgp_addr string, port string) {
-	opt := grpc.WithInsecure()
-	conn, err := grpc.Dial(gobgp_addr, opt)
-	if err != nil {
-		log.Fatalf("Connection error: %v", err)
-	}
-
-	lis, err := net.Listen("tcp", port)
+func Run() {
+	lis, err := net.Listen("tcp", ServerOpts.Port)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,16 +32,11 @@ func Run(gobgp_addr string, port string) {
 	}
 }
 
-func (s *server) Transmit(stream ptapi.PathTransfer_TransmitServer) error {
-	for {
-		path, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-		fmt.Println(path)
+func (s *server) Transmit(ctx context.Context, path *gobgpapi.Path) (*ptapi.PathTransferResponse, error) {
+	// WIP
+	fmt.Println(path)
+	res := ptapi.PathTransferResponse{
+		Status: "ok",
 	}
-	return nil
+	return &res, nil
 }

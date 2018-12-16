@@ -12,33 +12,39 @@ import (
 	"google.golang.org/grpc"
 )
 
+var ClientOpts struct {
+	GobgpAddr string
+	PeerAddrs string
+}
+
 const (
 	MAX_PATH_CAPACITY = 10000
 )
 
 var ac gobgpapi.GobgpApiClient
 
-func Run(gobgp_addr string, peer_addrs string) {
+func Run() {
 	opt := grpc.WithInsecure()
-	conn, err := grpc.Dial(gobgp_addr, opt)
+	conn, err := grpc.Dial(ClientOpts.GobgpAddr, opt)
 	if err != nil {
 		log.Fatalf("Connection error: %v", err)
 	}
 
-	var clients []client
+	pathChan := make(chan *gobgpapi.Path, MAX_PATH_CAPACITY)
 
-	addrs := parsePeerAddrs(peer_addrs)
+	var clients []client
+	addrs := parsePeerAddrs(ClientOpts.PeerAddrs)
 	for _, addr := range addrs {
 		c := client{address: addr}
-		c.start()
 		clients = append(clients, c)
+		//go c.start()
 	}
-
-	pathChan := make(chan *gobgpapi.Path, MAX_PATH_CAPACITY)
 
 	ac = gobgpapi.NewGobgpApiClient(conn)
 	go monitorRib(pathChan)
-	go distributePath(pathChan, clients)
+	// WIP: only one connection can be used to send path
+	go clients[0].sendPath(pathChan)
+
 }
 
 func monitorRib(pathChan chan *gobgpapi.Path) {
@@ -61,20 +67,26 @@ func monitorRib(pathChan chan *gobgpapi.Path) {
 			}
 			log.Fatalf("RPC error: %v", err)
 		}
-
 		path := p.Path
 		pathChan <- path
 	}
 }
 
-func distributePath(pathChan chan *gobgpapi.Path, clients []client) {
-	for {
-		path := <-pathChan
-		for _, cli := range clients {
-			go cli.sendPath(path)
-		}
-	}
-}
+// WIP
+//func distributePath(pathChan chan *gobgpapi.Path, clients []client) {
+//	for {
+//		path, ok := <-pathChan
+//		if !ok {
+//			break
+//		}
+//		p := *path
+//		for _, cli := range clients {
+//			go cli.sendPath(p)
+//		}
+//		c := clients[0]
+//		c.sendPath(p)
+//	}
+//}
 
 func parsePeerAddrs(addrs string) []string {
 	return strings.Split(addrs, ",")
@@ -82,31 +94,39 @@ func parsePeerAddrs(addrs string) []string {
 
 type client struct {
 	address string
-	stream  ptapi.PathTransfer_TransmitClient
 }
 
-func (c client) start() {
+// WIP
+//func (c client) start() {
+//	conn, err := grpc.Dial(c.address, grpc.WithInsecure())
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	defer conn.Close()
+//	c.conn = conn
+//
+//	return
+//}
+
+func (c client) sendPath(pathChan chan *gobgpapi.Path) {
 	conn, err := grpc.Dial(c.address, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
 
-	fmt.Println("hoge")
-	fmt.Println(conn.GetState())
-
 	cli := ptapi.NewPathTransferClient(conn)
-	stream, err := cli.Transmit(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	c.stream = stream
-}
-
-func (c client) sendPath(path *gobgpapi.Path) {
-	fmt.Println(path)
-	if err := c.stream.Send(path); err != nil {
-		log.Fatal(err)
+	for {
+		path, ok := <-pathChan
+		if !ok {
+			break
+		}
+		// WIP
+		fmt.Println(path)
+		_, err := cli.Transmit(context.Background(), path)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
