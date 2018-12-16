@@ -5,7 +5,7 @@ import "github.com/osrg/gobgp/api/gobgp.proto";
 package pathtransfer;
 
 service PathTransfer {
-    rpc Transmit(stream gobgpapi.Path) returns (PathTransferResponse);
+    rpc Transmit(gobgpapi.Path) returns (PathTransferResponse);
 }
 
 message PathTransferResponse {

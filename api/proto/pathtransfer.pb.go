@@ -6,10 +6,11 @@ package pathtransfer
 import (
 	context "context"
 	fmt "fmt"
+	math "math"
+
 	proto "github.com/golang/protobuf/proto"
 	api "github.com/osrg/gobgp/api"
 	grpc "google.golang.org/grpc"
-	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -69,17 +70,17 @@ func init() {
 func init() { proto.RegisterFile("pathtransfer.proto", fileDescriptor_bc82bad72b1ed66c) }
 
 var fileDescriptor_bc82bad72b1ed66c = []byte{
-	// 158 bytes of a gzipped FileDescriptorProto
+	// 156 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2a, 0x48, 0x2c, 0xc9,
 	0x28, 0x29, 0x4a, 0xcc, 0x2b, 0x4e, 0x4b, 0x2d, 0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2,
 	0x41, 0x16, 0x93, 0x52, 0x4d, 0xcf, 0x2c, 0xc9, 0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf, 0xd5, 0xcf,
 	0x2f, 0x2e, 0x4a, 0xd7, 0x4f, 0xcf, 0x4f, 0x4a, 0x2f, 0xd0, 0x4f, 0x2c, 0xc8, 0x84, 0xb0, 0x20,
 	0x9a, 0x94, 0xf4, 0xb8, 0x44, 0x02, 0x12, 0x4b, 0x32, 0x42, 0xa0, 0xda, 0x82, 0x52, 0x8b, 0x0b,
 	0xf2, 0xf3, 0x8a, 0x53, 0x85, 0xc4, 0xb8, 0xd8, 0x8a, 0x4b, 0x12, 0x4b, 0x4a, 0x8b, 0x25, 0x18,
-	0x15, 0x18, 0x35, 0x38, 0x83, 0xa0, 0x3c, 0xa3, 0x00, 0x2e, 0x1e, 0x64, 0xf5, 0x42, 0x0e, 0x5c,
+	0x15, 0x18, 0x35, 0x38, 0x83, 0xa0, 0x3c, 0x23, 0x3f, 0x2e, 0x1e, 0x64, 0xf5, 0x42, 0x76, 0x5c,
 	0x1c, 0x60, 0x76, 0x6e, 0x66, 0x89, 0x10, 0x9f, 0x1e, 0xd8, 0xe4, 0xc4, 0x82, 0x4c, 0x3d, 0x90,
-	0x1a, 0x29, 0x25, 0x3d, 0x14, 0x57, 0x62, 0xb3, 0x47, 0x83, 0x31, 0x89, 0x0d, 0xec, 0x10, 0x63,
-	0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0x2c, 0xce, 0x9d, 0xba, 0xd3, 0x00, 0x00, 0x00,
+	0x1a, 0x29, 0x25, 0x3d, 0x14, 0x57, 0x62, 0xb3, 0x27, 0x89, 0x0d, 0xec, 0x0c, 0x63, 0x40, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0x4c, 0x9c, 0x55, 0xcd, 0xd1, 0x00, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -94,7 +95,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type PathTransferClient interface {
-	Transmit(ctx context.Context, opts ...grpc.CallOption) (PathTransfer_TransmitClient, error)
+	Transmit(ctx context.Context, in *api.Path, opts ...grpc.CallOption) (*PathTransferResponse, error)
 }
 
 type pathTransferClient struct {
@@ -105,85 +106,51 @@ func NewPathTransferClient(cc *grpc.ClientConn) PathTransferClient {
 	return &pathTransferClient{cc}
 }
 
-func (c *pathTransferClient) Transmit(ctx context.Context, opts ...grpc.CallOption) (PathTransfer_TransmitClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_PathTransfer_serviceDesc.Streams[0], "/pathtransfer.PathTransfer/Transmit", opts...)
+func (c *pathTransferClient) Transmit(ctx context.Context, in *api.Path, opts ...grpc.CallOption) (*PathTransferResponse, error) {
+	out := new(PathTransferResponse)
+	err := c.cc.Invoke(ctx, "/pathtransfer.PathTransfer/Transmit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &pathTransferTransmitClient{stream}
-	return x, nil
-}
-
-type PathTransfer_TransmitClient interface {
-	Send(*api.Path) error
-	CloseAndRecv() (*PathTransferResponse, error)
-	grpc.ClientStream
-}
-
-type pathTransferTransmitClient struct {
-	grpc.ClientStream
-}
-
-func (x *pathTransferTransmitClient) Send(m *api.Path) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *pathTransferTransmitClient) CloseAndRecv() (*PathTransferResponse, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(PathTransferResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 // PathTransferServer is the server API for PathTransfer service.
 type PathTransferServer interface {
-	Transmit(PathTransfer_TransmitServer) error
+	Transmit(context.Context, *api.Path) (*PathTransferResponse, error)
 }
 
 func RegisterPathTransferServer(s *grpc.Server, srv PathTransferServer) {
 	s.RegisterService(&_PathTransfer_serviceDesc, srv)
 }
 
-func _PathTransfer_Transmit_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(PathTransferServer).Transmit(&pathTransferTransmitServer{stream})
-}
-
-type PathTransfer_TransmitServer interface {
-	SendAndClose(*PathTransferResponse) error
-	Recv() (*api.Path, error)
-	grpc.ServerStream
-}
-
-type pathTransferTransmitServer struct {
-	grpc.ServerStream
-}
-
-func (x *pathTransferTransmitServer) SendAndClose(m *PathTransferResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *pathTransferTransmitServer) Recv() (*api.Path, error) {
-	m := new(api.Path)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
+func _PathTransfer_Transmit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(api.Path)
+	if err := dec(in); err != nil {
 		return nil, err
 	}
-	return m, nil
+	if interceptor == nil {
+		return srv.(PathTransferServer).Transmit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pathtransfer.PathTransfer/Transmit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PathTransferServer).Transmit(ctx, req.(*api.Path))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 var _PathTransfer_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "pathtransfer.PathTransfer",
 	HandlerType: (*PathTransferServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams: []grpc.StreamDesc{
+	Methods: []grpc.MethodDesc{
 		{
-			StreamName:    "Transmit",
-			Handler:       _PathTransfer_Transmit_Handler,
-			ClientStreams: true,
+			MethodName: "Transmit",
+			Handler:    _PathTransfer_Transmit_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "pathtransfer.proto",
 }
