@@ -14,5 +14,3 @@ neighbors:
     transport:
       config:
         passive-mode: false
-
-

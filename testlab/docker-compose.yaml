@@ -1,50 +1,72 @@
 version: '3'
 
 services:
-  gobgp10:
+  gobgp_rs1:
     image: nstgt/docker-gobgp:latest
-    container_name: g10
+    container_name: rs1
     command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50010
     volumes:
-      - ${PWD}/gobgp10:/root
+      - ${PWD}/gobgp_rs1:/root
     networks:
       br01:
         ipv4_address: 10.0.1.10
     ports:
       - "50010:50010"
-  gobgp11:
+  gobgp_cli1:
     image: nstgt/docker-gobgp:latest
-    container_name: g11
+    container_name: cli1
     command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50011
     volumes:
-      - ${PWD}/gobgp11:/root
+      - ${PWD}/gobgp_cli1:/root
     networks:
       br01:
         ipv4_address: 10.0.1.11
     ports:
       - "50011:50011"
-  gobgp20:
+  gobgp_rs2:
     image: nstgt/docker-gobgp:latest
-    container_name: g20
+    container_name: rs2
     command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50020
     volumes:
-      - ${PWD}/gobgp20:/root
+      - ${PWD}/gobgp_rs2:/root
     networks:
       br01:
         ipv4_address: 10.0.1.20
     ports:
       - "50020:50020"        
-  gobgp22:
+  gobgp_cli2:
     image: nstgt/docker-gobgp:latest
-    container_name: g22
+    container_name: cli2
     command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50022
     volumes:
-      - ${PWD}/gobgp22:/root
+      - ${PWD}/gobgp_cli2:/root
     networks:
       br01:
         ipv4_address: 10.0.1.22
     ports:
-      - "50022:50022"        
+      - "50022:50022"
+  gobgp_rs3:
+    image: nstgt/docker-gobgp:latest
+    container_name: rs3
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50030
+    volumes:
+      - ${PWD}/gobgp_rs3:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.30
+    ports:
+      - "50030:50030"
+  gobgp_cli3:
+    image: nstgt/docker-gobgp:latest
+    container_name: cli3
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50033
+    volumes:
+      - ${PWD}/gobgp_cli3:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.33
+    ports:
+      - "50033:50033"
 networks:
   br01:
     driver: bridge
