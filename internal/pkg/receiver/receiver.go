@@ -41,7 +41,7 @@ func Run() {
 
 type receiver struct{}
 
-func (s *receiver) Transmit(ctx context.Context, path *gobgpapi.Path) (*ptapi.PathTransferResponse, error) {
+func (r *receiver) Transmit(ctx context.Context, path *gobgpapi.Path) (*ptapi.PathTransferResponse, error) {
 	// ForDebug
 	fmt.Println(path)
 
