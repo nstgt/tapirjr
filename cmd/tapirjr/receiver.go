@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/7310510/tapirjr/internal/pkg/receiver"
+	"github.com/nstgt/tapirjr/internal/pkg/receiver"
 	"github.com/spf13/cobra"
 )
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/7310510/tapirjr/internal/pkg/sender"
+	"github.com/nstgt/tapirjr/internal/pkg/sender"
 	"github.com/spf13/cobra"
 )
 

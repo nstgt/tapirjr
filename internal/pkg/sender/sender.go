@@ -7,7 +7,7 @@ import (
 	"log"
 	"strings"
 
-	ptapi "github.com/7310510/tapirjr/api/proto"
+	ptapi "github.com/nstgt/tapirjr/api/proto"
 	gobgpapi "github.com/osrg/gobgp/api"
 	"google.golang.org/grpc"
 )
