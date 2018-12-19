@@ -42,8 +42,7 @@ func Run() {
 
 	ac = gobgpapi.NewGobgpApiClient(conn)
 	go monitorRib(pathChan)
-	// WIP: only one connection can be used to send path
-	go senders[0].sendPath(pathChan)
+	go distributePath(pathChan, senders)
 
 }
 
@@ -72,21 +71,18 @@ func monitorRib(pathChan chan *gobgpapi.Path) {
 	}
 }
 
-// WIP
-//func distributePath(pathChan chan *gobgpapi.Path, senders []sender) {
-//	for {
-//		path, ok := <-pathChan
-//		if !ok {
-//			break
-//		}
-//		p := *path
-//		for _, cli := range senders {
-//			go cli.sendPath(p)
-//		}
-//		c := senders[0]
-//		c.sendPath(p)
-//	}
-//}
+func distributePath(pathChan chan *gobgpapi.Path, senders []sender) {
+	for {
+		path, ok := <-pathChan
+		if !ok {
+			break
+		}
+
+		for _, s := range senders {
+			go s.sendPath(path)
+		}
+	}
+}
 
 func parsePeerAddrs(addrs string) []string {
 	return strings.Split(addrs, ",")
@@ -105,25 +101,13 @@ type sender struct {
 	cliconn *grpc.ClientConn
 }
 
-func (s *sender) sendPath(pathChan chan *gobgpapi.Path) {
-	//conn, err := grpc.Dial(s.address, grpc.WithInsecure())
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//defer conn.Close()
-
+func (s sender) sendPath(path *gobgpapi.Path) {
 	cli := ptapi.NewPathTransferClient(s.cliconn)
 
-	for {
-		path, ok := <-pathChan
-		if !ok {
-			break
-		}
-		// WIP
-		fmt.Println(path)
-		_, err := cli.Transmit(context.Background(), path)
-		if err != nil {
-			log.Fatal(err)
-		}
+	// For debug
+	fmt.Println(path)
+	_, err := cli.Transmit(context.Background(), path)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
