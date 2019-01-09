@@ -78,10 +78,25 @@ func distributePath(pathChan chan *gobgpapi.Path, senders []sender) {
 			break
 		}
 
+		if isPathIncludeNilSourceIPNeighborIP(path) {
+			continue
+		}
+
 		for _, s := range senders {
 			go s.sendPath(path)
 		}
 	}
+}
+
+func isPathIncludeNilSourceIPNeighborIP(path *gobgpapi.Path) (res bool) {
+	p := *path
+	if p.SourceId == "<nil>" {
+		return true
+	}
+	if p.NeighborIp == "<nil>" {
+		return true
+	}
+	return false
 }
 
 func parsePeerAddrs(addrs string) []string {
