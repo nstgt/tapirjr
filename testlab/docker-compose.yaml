@@ -1,4 +1,4 @@
-version: '3'
+version: '2.1'
 
 services:
   gobgp_rs1:
@@ -10,6 +10,7 @@ services:
     networks:
       br01:
         ipv4_address: 10.0.1.10
+        ipv6_address: 2001:db8:1::10
     ports:
       - "50010:50010"
   gobgp_cli1:
@@ -21,6 +22,7 @@ services:
     networks:
       br01:
         ipv4_address: 10.0.1.11
+        ipv6_address: 2001:db8:1::11
     ports:
       - "50011:50011"
   gobgp_rs2:
@@ -32,6 +34,7 @@ services:
     networks:
       br01:
         ipv4_address: 10.0.1.20
+        ipv6_address: 2001:db8:1::20
     ports:
       - "50020:50020"        
   gobgp_cli2:
@@ -43,6 +46,7 @@ services:
     networks:
       br01:
         ipv4_address: 10.0.1.22
+        ipv6_address: 2001:db8:1::22
     ports:
       - "50022:50022"
   gobgp_rs3:
@@ -54,6 +58,7 @@ services:
     networks:
       br01:
         ipv4_address: 10.0.1.30
+        ipv6_address: 2001:db8:1::30
     ports:
       - "50030:50030"
   gobgp_cli3:
@@ -65,13 +70,15 @@ services:
     networks:
       br01:
         ipv4_address: 10.0.1.33
+        ipv6_address: 2001:db8:1::33
     ports:
       - "50033:50033"
 networks:
   br01:
     driver: bridge
+    enable_ipv6: true
     ipam:
-     driver: default
-     config:
-       - subnet: 10.0.1.0/24
-
+      driver: default
+      config:
+        - subnet: 10.0.1.0/24
+        - subnet: 2001:db8:1::/64

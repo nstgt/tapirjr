@@ -14,3 +14,9 @@ neighbors:
     transport:
       config:
         passive-mode: false
+  - config:
+      neighbor-address: 2001:db8:1::10
+      peer-as: 65010
+    transport:
+      config:
+        passive-mode: false
