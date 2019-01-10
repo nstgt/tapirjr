@@ -41,16 +41,18 @@ func Run() {
 	}
 
 	ac = gobgpapi.NewGobgpApiClient(conn)
-	go monitorRib(pathChan)
+	// Only support for Afi: IPv4,IPv6 and Safi: Unicast
+	go monitorRib(gobgpapi.Family_AFI_IP, gobgpapi.Family_SAFI_UNICAST, pathChan)
+	go monitorRib(gobgpapi.Family_AFI_IP6, gobgpapi.Family_SAFI_UNICAST, pathChan)
 	go distributePath(pathChan, senders)
 
 }
 
-func monitorRib(pathChan chan *gobgpapi.Path) {
+func monitorRib(afi gobgpapi.Family_Afi, safi gobgpapi.Family_Safi, pathChan chan *gobgpapi.Path) {
 	stream, err := ac.MonitorTable(context.Background(), &gobgpapi.MonitorTableRequest{
 		Type:       gobgpapi.Resource_GLOBAL,
 		Name:       "",
-		Family:     &gobgpapi.Family{Afi: gobgpapi.Family_AFI_IP, Safi: gobgpapi.Family_SAFI_UNICAST},
+		Family:     &gobgpapi.Family{Afi: afi, Safi: safi},
 		Current:    true,
 		PostPolicy: true,
 	})
