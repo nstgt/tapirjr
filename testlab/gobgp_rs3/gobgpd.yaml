@@ -1,6 +1,6 @@
 global:
   config:
-    as: 65030
+    as: 65534
     router-id: 10.0.1.30
   apply-policy:
     config:
