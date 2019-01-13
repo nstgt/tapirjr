@@ -50,7 +50,7 @@ func Run() {
 
 func monitorRib(afi gobgpapi.Family_Afi, safi gobgpapi.Family_Safi, pathChan chan *gobgpapi.Path) {
 	stream, err := ac.MonitorTable(context.Background(), &gobgpapi.MonitorTableRequest{
-		Type:       gobgpapi.Resource_GLOBAL,
+		Type:       gobgpapi.Resource_ADJ_IN,
 		Name:       "",
 		Family:     &gobgpapi.Family{Afi: afi, Safi: safi},
 		Current:    true,
