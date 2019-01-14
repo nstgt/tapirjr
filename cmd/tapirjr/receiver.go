@@ -6,9 +6,7 @@ import (
 )
 
 func startReceiver() {
-	go receiver.Run()
-	for {
-	}
+	receiver.Run()
 }
 
 func newReceiverCmd() *cobra.Command {
