@@ -26,7 +26,7 @@
 
 [[constraint]]
   name = "github.com/osrg/gobgp"
-  revision = "076d019b75c058456f64b97c90b48f69c7dd1877"
+  version = "v2.0.0"
 
 [[constraint]]
   name = "google.golang.org/grpc"
