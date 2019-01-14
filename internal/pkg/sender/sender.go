@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	ptapi "github.com/nstgt/tapirjr/api/proto"
 	gobgpapi "github.com/osrg/gobgp/api"
@@ -24,8 +27,7 @@ const (
 var ac gobgpapi.GobgpApiClient
 
 func Run() {
-	opt := grpc.WithInsecure()
-	conn, err := grpc.Dial(SenderOpts.GobgpAddr, opt)
+	conn, err := grpc.Dial(SenderOpts.GobgpAddr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Connection error: %v", err)
 	}
@@ -40,15 +42,29 @@ func Run() {
 		senders = append(senders, s)
 	}
 
-	ac = gobgpapi.NewGobgpApiClient(conn)
-	// Only support for Afi: IPv4,IPv6 and Safi: Unicast
-	go monitorRib(gobgpapi.Family_AFI_IP, gobgpapi.Family_SAFI_UNICAST, pathChan)
-	go monitorRib(gobgpapi.Family_AFI_IP6, gobgpapi.Family_SAFI_UNICAST, pathChan)
-	go distributePath(pathChan, senders)
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT)
 
+	ctx, shutdown := context.WithCancel(context.Background())
+
+	ac = gobgpapi.NewGobgpApiClient(conn)
+
+	log.Println("sendder start...")
+	// Only support for Afi: IPv4,IPv6 and Safi: Unicast
+	go monitorTable(ctx, gobgpapi.Family_AFI_IP, gobgpapi.Family_SAFI_UNICAST, pathChan)
+	go monitorTable(ctx, gobgpapi.Family_AFI_IP6, gobgpapi.Family_SAFI_UNICAST, pathChan)
+	go distributePath(ctx, pathChan, senders)
+
+	s := <-sigChan
+	switch s {
+	case syscall.SIGINT:
+		log.Println("sender shutdown...")
+		shutdown()
+		log.Println("sender shutdown completed, bye!")
+	}
 }
 
-func monitorRib(afi gobgpapi.Family_Afi, safi gobgpapi.Family_Safi, pathChan chan *gobgpapi.Path) {
+func monitorTable(ctx context.Context, afi gobgpapi.Family_Afi, safi gobgpapi.Family_Safi, pathChan chan *gobgpapi.Path) {
 	stream, err := ac.MonitorTable(context.Background(), &gobgpapi.MonitorTableRequest{
 		TableType:  gobgpapi.TableType_ADJ_IN,
 		Name:       "",
@@ -70,10 +86,16 @@ func monitorRib(afi gobgpapi.Family_Afi, safi gobgpapi.Family_Safi, pathChan cha
 		}
 		path := p.Path
 		pathChan <- path
+
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
 	}
 }
 
-func distributePath(pathChan chan *gobgpapi.Path, senders []sender) {
+func distributePath(ctx context.Context, pathChan chan *gobgpapi.Path, senders []sender) {
 	for {
 		path, ok := <-pathChan
 		if !ok {
@@ -86,6 +108,12 @@ func distributePath(pathChan chan *gobgpapi.Path, senders []sender) {
 
 		for _, s := range senders {
 			go s.sendPath(path)
+		}
+
+		select {
+		case <-ctx.Done():
+			return
+		default:
 		}
 	}
 }

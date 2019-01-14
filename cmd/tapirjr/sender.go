@@ -6,9 +6,7 @@ import (
 )
 
 func startSender() {
-	go sender.Run()
-	for {
-	}
+	sender.Run()
 }
 
 func newSenderCmd() *cobra.Command {
