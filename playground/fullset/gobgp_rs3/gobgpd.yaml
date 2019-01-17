@@ -1,0 +1,22 @@
+global:
+  config:
+    as: 65534
+    router-id: 10.0.1.30
+  apply-policy:
+    config:
+      default-import-policy: accept-route
+      default-export-policy: accept-route
+
+neighbors:
+  - config:
+      neighbor-address: 10.0.1.33
+      peer-as: 65033
+    transport:
+      config:
+        passive-mode: false
+  - config:
+      neighbor-address: 2001:db8:1::33
+      peer-as: 65033
+    transport:
+      config:
+        passive-mode: false

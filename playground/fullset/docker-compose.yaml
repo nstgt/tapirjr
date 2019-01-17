@@ -1,0 +1,150 @@
+version: '2.1'
+
+services:
+  gobgp_rs1:
+    image: nstgt/docker-gobgp:latest
+    container_name: rs1
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50010
+    volumes:
+      - ${PWD}/gobgp_rs1:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.10
+        ipv6_address: 2001:db8:1::10
+      br02:
+        ipv4_address: 192.168.1.10
+    ports:
+      - "50010:50010"
+  sidecar_snd1:
+    image: nstgt/tapirjr:v0.0.0
+    container_name: snd1
+    command: /usr/local/bin/tapirjr sender -g 192.168.1.10:50010 -s 192.168.1.22:50052,192.168.1.32:50053
+    networks:
+      br02:
+        ipv4_address: 192.168.1.11
+    depends_on:
+      - gobgp_rs1
+  sidecar_rcv1:
+    image: nstgt/tapirjr:v0.0.0
+    container_name: rcv1
+    command: /usr/local/bin/tapirjr receiver -g 192.168.1.10:50010 -p 192.168.1.12:50051
+    networks:
+      br02:
+        ipv4_address: 192.168.1.12
+    ports:
+      - "50051:50051"
+  gobgp_cli1:
+    image: nstgt/docker-gobgp:latest
+    container_name: cli1
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50011
+    volumes:
+      - ${PWD}/gobgp_cli1:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.11
+        ipv6_address: 2001:db8:1::11
+    ports:
+      - "50011:50011"
+  gobgp_rs2:
+    image: nstgt/docker-gobgp:latest
+    container_name: rs2
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50020
+    volumes:
+      - ${PWD}/gobgp_rs2:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.20
+        ipv6_address: 2001:db8:1::20
+      br02:
+        ipv4_address: 192.168.1.20
+    ports:
+      - "50020:50020"
+  sidecar_snd2:
+    image: nstgt/tapirjr:v0.0.0
+    container_name: snd2
+    command: /usr/local/bin/tapirjr sender -g 192.168.1.20:50020 -s 192.168.1.12:50051,192.168.1.32:50053
+    networks:
+      br02:
+        ipv4_address: 192.168.1.21
+    depends_on:
+      - gobgp_rs2
+  sidecar_rcv2:
+    image: nstgt/tapirjr:v0.0.0
+    container_name: rcv2
+    command: /usr/local/bin/tapirjr receiver  -g 192.168.1.20:50020 -p 192.168.1.22:50052
+    networks:
+      br02:
+        ipv4_address: 192.168.1.22
+    ports:
+      - "50052:50052"
+  gobgp_cli2:
+    image: nstgt/docker-gobgp:latest
+    container_name: cli2
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50022
+    volumes:
+      - ${PWD}/gobgp_cli2:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.22
+        ipv6_address: 2001:db8:1::22
+    ports:
+      - "50022:50022"
+  gobgp_rs3:
+    image: nstgt/docker-gobgp:latest
+    container_name: rs3
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50030
+    volumes:
+      - ${PWD}/gobgp_rs3:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.30
+        ipv6_address: 2001:db8:1::30
+      br02:
+        ipv4_address: 192.168.1.30
+    ports:
+      - "50030:50030"
+  sidecar_snd3:
+    image: nstgt/tapirjr:v0.0.0
+    container_name: snd3
+    command: /usr/local/bin/tapirjr sender -g 192.168.1.30:50030 -s 192.168.1.12:50051,192.168.1.22:50052
+    networks:
+      br02:
+        ipv4_address: 192.168.1.31
+    depends_on:
+      - gobgp_rs3
+  sidecar_rcv3:
+    image: nstgt/tapirjr:v0.0.0
+    container_name: rcv3
+    command: /usr/local/bin/tapirjr receiver -g 192.168.1.30:50030 -p 192.168.1.32:50053
+    networks:
+      br02:
+        ipv4_address: 192.168.1.32
+    ports:
+      - "50053:50053"
+  gobgp_cli3:
+    image: nstgt/docker-gobgp:latest
+    container_name: cli3
+    command: /usr/local/bin/gobgpd -f /root/gobgpd.yaml --api-hosts :50033
+    volumes:
+      - ${PWD}/gobgp_cli3:/root
+    networks:
+      br01:
+        ipv4_address: 10.0.1.33
+        ipv6_address: 2001:db8:1::33
+    ports:
+      - "50033:50033"
+networks:
+  br01:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.1.0/24
+        - subnet: 2001:db8:1::/64
+  br02:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.1.0/24
